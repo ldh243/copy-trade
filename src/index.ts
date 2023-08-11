@@ -55,6 +55,8 @@ ${cmd} ${closePosition.symbol} x ${closePosition.leverage}\`
 
 const pushMsgTele = (content: string) => {
   const bot = new Telegraf(TELEGRAM_KEY);
+  console.log("==========================================================");
+  console.log(content);
   bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID, content, {
     parse_mode: "Markdown",
   });
@@ -113,7 +115,7 @@ const saveDB = async (data: IPosition[]) => {
   try {
     await fs.promises.writeFile(DB_PATH, JSON.stringify(data));
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
