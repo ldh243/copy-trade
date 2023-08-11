@@ -1,15 +1,12 @@
-import { Telegraf } from "telegraf";
 import { request } from "./utils/axios";
-import {
-  API,
-  DB_PATH,
-  TELEGRAM_CHANNEL_ID,
-  TELEGRAM_KEY,
-} from "./constant/config";
+import { API, DB_PATH } from "./constant/config";
 import fs from "fs";
 import { IPosition, IPositionDetail, IProfile } from "./db/types";
 import cron from "node-cron";
 import { PROFILES } from "./db/profile";
+import { formatNumber } from "./utils/number";
+import { messageTelegram } from "./utils/telegram";
+import { read, save } from "./utils/db";
 
 const messageOpenOrDCAPosition = (
   profile: IProfile,
@@ -19,23 +16,34 @@ const messageOpenOrDCAPosition = (
   let message = "";
   const cmd = newPosition.amount > 0 ? "Long" : "Short";
   const isNew = oldPosition ? false : true;
+  const icon = "Long" ? "🟢" : "🔴";
+
   if (isNew) {
     message = `
-    \`User ${profile.username} make new position:
-${cmd} ${newPosition.symbol} x ${newPosition.leverage}
-Entry: ${newPosition.entryPrice} | Volume: ${newPosition.amount} | Mark: ${newPosition.markPrice}\`
+    ${icon} User _${profile.username}_ make new position:
+${cmd} #${newPosition.symbol} x ${newPosition.leverage}
+Entry: \`${formatNumber(newPosition.entryPrice)}\` | Volume: \`${formatNumber(
+      newPosition.amount
+    )}\`
 `;
   } else if (oldPosition) {
     message = `
-    \`User ${profile.username} DCA ${cmd} ${newPosition.symbol}.
-Old: Entry: ${oldPosition.entryPrice} | Volume: ${oldPosition.entryPrice}
-New: Entry: ${newPosition.entryPrice} | Volume: ${newPosition.entryPrice} | Mark: ${newPosition.markPrice}\`
+    ${icon} User _${profile.username}_ DCA #${newPosition.symbol}
+${cmd} #${newPosition.symbol} x ${newPosition.leverage}
+Old: Entry: \`${formatNumber(
+      oldPosition.entryPrice
+    )}\` | Volume: \`${formatNumber(oldPosition.amount)}\`
+New: Entry: \`${formatNumber(
+      newPosition.entryPrice
+    )}\` | Volume: \`${formatNumber(
+      newPosition.amount
+    )}\` | Mark: \`${formatNumber(newPosition.markPrice)}\`
 `;
   }
 
   //add profile url
-  message += `\`Check out profile\`  [here](${API.PROFILE_URL}${profile.uid})`;
-  pushMsgTele(message);
+  message += `Check out profile [here](${API.PROFILE_URL}${profile.uid})`;
+  messageTelegram(message);
 };
 const messageClosePosition = (
   profile: IProfile,
@@ -43,29 +51,15 @@ const messageClosePosition = (
 ) => {
   let message = "";
   const cmd = closePosition.amount > 0 ? "Long" : "Short";
+  const icon = "Long" ? "🟢" : "🔴";
   message = `
-    \`User ${profile.username} has closed position:
-${cmd} ${closePosition.symbol} x ${closePosition.leverage}\`
+    ${icon} User _${profile.username}_ has closed position:
+${cmd} #${closePosition.symbol} x ${closePosition.leverage}
 `;
 
   //add profile url
-  message += `\`Check out profile\`  [here](${API.PROFILE_URL}${profile.uid})`;
-  pushMsgTele(message);
-};
-
-const pushMsgTele = (content: string) => {
-  const bot = new Telegraf(TELEGRAM_KEY);
-  console.log("==========================================================");
-  console.log(content);
-  bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID, content, {
-    parse_mode: "Markdown",
-  });
-};
-
-const readDB = async (): Promise<IPosition[]> => {
-  const data = await fs.promises.readFile(DB_PATH, "utf8");
-  const result: IPosition[] = JSON.parse(data);
-  return result;
+  message += `Check out profile [here](${API.PROFILE_URL}${profile.uid})`;
+  messageTelegram(message);
 };
 
 const getPositions = async (uid: string): Promise<IPositionDetail[]> => {
@@ -111,16 +105,8 @@ const comparePosition = async (
   });
 };
 
-const saveDB = async (data: IPosition[]) => {
-  try {
-    await fs.promises.writeFile(DB_PATH, JSON.stringify(data));
-  } catch (error) {
-    console.error(error);
-  }
-};
-
 const main = async () => {
-  const positions = await readDB();
+  const positions = await read();
 
   const data: IPosition[] = [];
 
@@ -130,12 +116,12 @@ const main = async () => {
     comparePosition(profile, positions, newPositions);
   }
 
-  saveDB(data);
+  // save(data);
 };
 
-// main();
+main();
 
 // Schedule main() to run every 2 minutes
-cron.schedule("*/2 * * * *", () => {
-  main();
-});
+// cron.schedule("*/2 * * * *", () => {
+//   main();
+// });
