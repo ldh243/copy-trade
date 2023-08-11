@@ -11,7 +11,7 @@ import { IPosition, IPositionDetail, IProfile } from "./db/types";
 import cron from "node-cron";
 import { PROFILES } from "./db/profile";
 
-const messageTelegram = (
+const messageOpenOrDCAPosition = (
   profile: IProfile,
   newPosition: IPositionDetail,
   oldPosition?: IPositionDetail
@@ -34,10 +34,28 @@ New: Entry: ${newPosition.entryPrice} | Volume: ${newPosition.entryPrice} | Mark
   }
 
   //add profile url
-  message += `\`Check out profile\` [here](${API.PROFILE_URL}${profile.uid})`;
+  message += `\`Check out profile\`  [here](${API.PROFILE_URL}${profile.uid})`;
+  pushMsgTele(message);
+};
+const messageClosePosition = (
+  profile: IProfile,
+  closePosition: IPositionDetail
+) => {
+  let message = "";
+  const cmd = closePosition.amount > 0 ? "Long" : "Short";
+  message = `
+    \`User ${profile.username} has closed position:
+${cmd} ${closePosition.symbol} x ${closePosition.leverage}\`
+`;
 
+  //add profile url
+  message += `\`Check out profile\`  [here](${API.PROFILE_URL}${profile.uid})`;
+  pushMsgTele(message);
+};
+
+const pushMsgTele = (content: string) => {
   const bot = new Telegraf(TELEGRAM_KEY);
-  bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID, message, {
+  bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID, content, {
     parse_mode: "Markdown",
   });
 };
@@ -67,6 +85,7 @@ const comparePosition = async (
     (position: IPosition) => position.uid === profile.uid
   );
 
+  //check DCA or open new position
   newPositions.forEach((newPosition: IPositionDetail) => {
     const currentPositionBySymbol = currentPositions?.data.find(
       (currentPosition) => currentPosition.symbol === newPosition.symbol
@@ -75,13 +94,22 @@ const comparePosition = async (
       currentPositionBySymbol?.amount !== newPosition.amount ||
       currentPositionBySymbol?.entryPrice !== newPosition.entryPrice
     ) {
-      messageTelegram(profile, newPosition, currentPositionBySymbol);
+      messageOpenOrDCAPosition(profile, newPosition, currentPositionBySymbol);
+    }
+  });
+
+  //check close position
+  currentPositions?.data.forEach((currentPosition: IPositionDetail) => {
+    const newPositionBySymbol = newPositions.findIndex(
+      (newPosition) => newPosition.symbol === currentPosition.symbol
+    );
+    if (newPositionBySymbol === -1) {
+      messageClosePosition(profile, currentPosition);
     }
   });
 };
 
 const saveDB = async (data: IPosition[]) => {
-  console.log("save DB");
   try {
     await fs.promises.writeFile(DB_PATH, JSON.stringify(data));
   } catch (error) {
@@ -103,7 +131,9 @@ const main = async () => {
   saveDB(data);
 };
 
-// Schedule main() to run every 5 minutes
-cron.schedule("*/5 * * * *", () => {
+// main();
+
+// Schedule main() to run every 2 minutes
+cron.schedule("*/2 * * * *", () => {
   main();
 });
