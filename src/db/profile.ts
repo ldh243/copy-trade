@@ -2,8 +2,8 @@ import { IProfile } from "./types";
 
 export const PROFILES: IProfile[] = [
   {
-    username: "long94",
-    uid: "D0C9305EBE107FBB745379D7B6A8396A",
+    username: "Smartestmoneydoteth",
+    uid: "1FB04E31362DEED9CAA1C7EF8A771B8A",
   },
   {
     username: "Anonymous-User-c894e",
