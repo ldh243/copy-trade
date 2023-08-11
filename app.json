@@ -1,0 +1,8 @@
+{
+  "apps": [
+    {
+      "name": "copy-trade",
+      "script": "dist/index.js"
+    }
+  ]
+}
