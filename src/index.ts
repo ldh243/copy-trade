@@ -116,12 +116,12 @@ const main = async () => {
     comparePosition(profile, positions, newPositions);
   }
 
-  // save(data);
+  save(data);
 };
 
-main();
+// main();
 
 // Schedule main() to run every 2 minutes
-// cron.schedule("*/2 * * * *", () => {
-//   main();
-// });
+cron.schedule("*/2 * * * *", () => {
+  main();
+});
