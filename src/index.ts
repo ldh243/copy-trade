@@ -1,6 +1,5 @@
 import { request } from "./utils/axios";
-import { API, DB_PATH } from "./constant/config";
-import fs from "fs";
+import { API } from "./constant/config";
 import { IPosition, IPositionDetail, IProfile } from "./db/types";
 import cron from "node-cron";
 import { PROFILES } from "./db/profile";
@@ -14,10 +13,9 @@ const messageOpenOrDCAPosition = (
   oldPosition?: IPositionDetail
 ) => {
   let message = "";
-  const cmd = newPosition.amount > 0 ? "Long" : "Short";
   const isNew = oldPosition ? false : true;
-  const icon = "Long" ? "🟢" : "🔴";
-
+  const cmd = newPosition.amount > 0 ? "Long" : "Short";
+  const icon = newPosition.amount > 0 ? "🟢" : "🔴";
   if (isNew) {
     message = `
     ${icon} User _${profile.username}_ make new position:
@@ -51,7 +49,7 @@ const messageClosePosition = (
 ) => {
   let message = "";
   const cmd = closePosition.amount > 0 ? "Long" : "Short";
-  const icon = "Long" ? "🟢" : "🔴";
+  const icon = closePosition.amount > 0 ? "🟢" : "🔴";
   message = `
     ${icon} User _${profile.username}_ has closed position:
 ${cmd} #${closePosition.symbol} x ${closePosition.leverage}
@@ -121,7 +119,7 @@ const main = async () => {
 
 // main();
 
-// Schedule main() to run every 2 minutes
-cron.schedule("*/2 * * * *", () => {
+// Schedule main() to run every 1 minutes
+cron.schedule("*/1 * * * *", () => {
   main();
 });

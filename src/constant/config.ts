@@ -9,5 +9,5 @@ export const API = {
 export const DB_PATH = `src/db/data.json`;
 
 export const TELEGRAM_KEY = "6434359396:AAE71LMPXQbosw5Gl2oRGzYDNs7TEUmn1UU";
-export const TELEGRAM_CHANNEL_ID = "-909658935";
-// export const TELEGRAM_CHANNEL_ID = "-696355987";
+export const TELEGRAM_CHANNEL_ID = "-909658935"; //main group
+// export const TELEGRAM_CHANNEL_ID = "-798774213";
