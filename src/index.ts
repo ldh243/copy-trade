@@ -6,6 +6,7 @@ import { formatNumber } from "./utils/number";
 import { messageTelegram } from "./utils/telegram";
 import { read, save } from "./utils/db";
 import { getMarkPrice, getOtherPosition } from "./binance";
+import { closeMyPosition } from "./account";
 
 const messageOpenOrDCAPosition = async (
   profile: IProfile,
@@ -72,6 +73,8 @@ Entry price: ${formatNumber(entryPrice)} | Close price: ${formatNumber(
   //add profile url
   message += `Check out profile [here](${BASE_ENDPOINT.PROFILE_URL}${profile.uid})`;
   messageTelegram(message);
+
+  closeMyPosition(profile.username, closePosition.symbol, cmd);
 };
 
 const comparePosition = async (
@@ -122,7 +125,6 @@ const main = async () => {
 };
 
 // main();
-// binance();
 
 // Schedule main() to run every 30 seconds
 cron.schedule("*/30 * * * * *", () => {

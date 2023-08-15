@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { BASE_API, BINANCE_API } from "../constant/config";
+import { API_KEY, BASE_API, BINANCE_API } from "../constant/config";
 
 export const request = axios.create({
   baseURL: BASE_API,
@@ -8,6 +8,9 @@ export const request = axios.create({
 
 export const binanceRequest = axios.create({
   baseURL: BINANCE_API,
+  headers: {
+    "X-MBX-APIKEY": API_KEY,
+  },
 });
 
 const handleSuccess = (res: AxiosResponse) => {

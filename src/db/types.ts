@@ -32,3 +32,23 @@ export interface IPrice {
   nextFundingTime: number;
   time: number;
 }
+
+export interface IAccountPositionDetail {
+  symbol: string;
+  initialMargin: string;
+  maintMargin: string;
+  unrealizedProfit: string;
+  positionInitialMargin: string;
+  openOrderInitialMargin: string;
+  leverage: string;
+  isolated: boolean;
+  entryPrice: string;
+  maxNotional: string;
+  positionSide: string;
+  positionAmt: string;
+  notional: string;
+  isolatedWallet: string;
+  updateTime: number;
+  bidNotional: string;
+  askNotional: string;
+}

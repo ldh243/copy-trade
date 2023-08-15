@@ -1,17 +1,7 @@
 import crypto from "crypto";
-import axios from "axios";
-import {
-  API_KEY,
-  API_SECRET,
-  BASE_ENDPOINT,
-  BINANCE_ENDPOINT,
-} from "./constant/config";
+import { API_SECRET, BASE_ENDPOINT, BINANCE_ENDPOINT } from "./constant/config";
 import { binanceRequest, request } from "./utils/axios";
-import { IPositionDetail, IPrice } from "./db/types";
-
-const endpoint = "https://fapi.binance.com/fapi/v2/account";
-const timestamp = Date.now();
-const queryString = `timestamp=${timestamp}`;
+import { IAccountPositionDetail, IPositionDetail, IPrice } from "./db/types";
 
 export const getMarkPrice = async (symbol: string): Promise<number> => {
   const data: IPrice = await binanceRequest.get(BINANCE_ENDPOINT.PRICE, {
@@ -34,39 +24,55 @@ export const getOtherPosition = async (
   return data.otherPositionRetList;
 };
 
-export const binance = () => {
+export const getAccountPosition = async (): Promise<
+  IAccountPositionDetail[]
+> => {
+  const timestamp = Date.now();
+  const queryString = `timestamp=${timestamp}`;
+
   const signature = crypto
     .createHmac("sha256", API_SECRET)
     .update(queryString)
     .digest("hex");
-
-  const headers = {
-    "X-MBX-APIKEY": API_KEY,
-  };
 
   const params = {
     timestamp,
     signature,
   };
 
-  axios
-    .get(endpoint, { headers, params })
-    .then((response) => {
-      const positions = response.data.positions;
+  const data = await binanceRequest.get(BINANCE_ENDPOINT.ACCOUNT, {
+    params,
+  });
 
-      positions.forEach((position: any) => {
-        const symbol = position.symbol;
-        const positionAmt = parseFloat(position.positionAmt);
-        const entryPrice = parseFloat(position.entryPrice);
+  const result: IAccountPositionDetail[] = [];
 
-        if (positionAmt !== 0) {
-          console.log(
-            `Symbol: ${symbol}, Position Amount: ${positionAmt}, Entry Price: ${entryPrice}`
-          );
-        }
-      });
-    })
-    .catch((error) => {
-      console.error("Error:", error.message);
-    });
+  (data as any).positions.forEach((position: IAccountPositionDetail) => {
+    const positionAmt = parseFloat(position.positionAmt);
+    if (positionAmt !== 0) {
+      result.push(position);
+    }
+  });
+
+  return result;
+};
+
+export const makeOrder = async (position: any): Promise<Boolean> => {
+  const timestamp = Date.now();
+  const side = Number(position.positionAmt) > 0 ? "SELL" : "BUY"; // Place a sell order to close a long position
+  const positionSide = Number(position.positionAmt) > 0 ? "LONG" : "SHORT";
+  const type = "MARKET"; // Use a market order to close the position
+  const quantity = position.positionAmt.split("-").join("");
+
+  const queryString = `symbol=${position.symbol}&positionSide=${positionSide}&side=${side}&type=${type}&quantity=${quantity}&timestamp=${timestamp}`;
+
+  const signature = crypto
+    .createHmac("sha256", API_SECRET)
+    .update(queryString)
+    .digest("hex");
+
+  const data = await binanceRequest.post(
+    `${BINANCE_ENDPOINT.MAKE_ORDER}?${queryString}&signature=${signature}`,
+    null
+  );
+  return data ? true : false;
 };

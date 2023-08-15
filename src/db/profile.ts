@@ -9,4 +9,8 @@ export const PROFILES: IProfile[] = [
     username: "Anonymous-User-c894e",
     uid: "C3E4F8054F0F7D951C28221A220A32EA",
   },
+  {
+    username: "long94",
+    uid: "D0C9305EBE107FBB745379D7B6A8396A",
+  },
 ];

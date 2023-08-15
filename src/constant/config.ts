@@ -16,6 +16,8 @@ export const BASE_ENDPOINT = {
 
 export const BINANCE_ENDPOINT = {
   PRICE: "/fapi/v1/premiumIndex",
+  ACCOUNT: "/fapi/v2/account",
+  MAKE_ORDER: "/fapi/v1/order",
 };
 
 export const DB_PATH = `src/db/data.json`;
