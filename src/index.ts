@@ -1,21 +1,24 @@
-import { request } from "./utils/axios";
-import { API } from "./constant/config";
+import { BASE_ENDPOINT } from "./constant/config";
 import { IPosition, IPositionDetail, IProfile } from "./db/types";
 import cron from "node-cron";
 import { PROFILES } from "./db/profile";
 import { formatNumber } from "./utils/number";
 import { messageTelegram } from "./utils/telegram";
 import { read, save } from "./utils/db";
+import { getMarkPrice, getOtherPosition } from "./binance";
 
-const messageOpenOrDCAPosition = (
+const messageOpenOrDCAPosition = async (
   profile: IProfile,
   newPosition: IPositionDetail,
   oldPosition?: IPositionDetail
 ) => {
   let message = "";
+
   const isNew = oldPosition ? false : true;
   const cmd = newPosition.amount > 0 ? "Long" : "Short";
   const icon = newPosition.amount > 0 ? "🟢" : "🔴";
+  const markPrice = await getMarkPrice(newPosition.symbol);
+
   if (isNew) {
     message = `
     ${icon} User _${profile.username}_ make new position:
@@ -26,7 +29,9 @@ Entry: \`${formatNumber(newPosition.entryPrice)}\` | Volume: \`${formatNumber(
 `;
   } else if (oldPosition) {
     message = `
-    ${icon} User _${profile.username}_ DCA #${newPosition.symbol}
+    ${icon} User _${profile.username}_ DCA #${
+      newPosition.symbol
+    } at entry ${formatNumber(markPrice)}
 ${cmd} #${newPosition.symbol} x ${newPosition.leverage}
 Old: Entry: \`${formatNumber(
       oldPosition.entryPrice
@@ -40,34 +45,36 @@ New: Entry: \`${formatNumber(
   }
 
   //add profile url
-  message += `Check out profile [here](${API.PROFILE_URL}${profile.uid})`;
+  message += `Check out profile [here](${BASE_ENDPOINT.PROFILE_URL}${profile.uid})`;
   messageTelegram(message);
 };
-const messageClosePosition = (
+const messageClosePosition = async (
   profile: IProfile,
   closePosition: IPositionDetail
 ) => {
   let message = "";
+  const closePrice = await getMarkPrice(closePosition.symbol);
+  const entryPrice = closePosition.entryPrice;
   const cmd = closePosition.amount > 0 ? "Long" : "Short";
   const icon = closePosition.amount > 0 ? "🟢" : "🔴";
+
+  const profit = (closePrice - entryPrice) * closePosition.amount;
+  const percentage =
+    ((closePrice - entryPrice) / closePrice) *
+    closePosition.leverage *
+    (closePosition.amount > 0 ? 1 : -1);
+
   message = `
     ${icon} User _${profile.username}_ has closed position:
 ${cmd} #${closePosition.symbol} x ${closePosition.leverage}
+Entry price: ${formatNumber(entryPrice)} | Close price: ${formatNumber(
+    closePrice
+  )} | Profit: ${formatNumber(profit, 2)}(${formatNumber(percentage * 100, 2)}%)
 `;
 
   //add profile url
-  message += `Check out profile [here](${API.PROFILE_URL}${profile.uid})`;
+  message += `Check out profile [here](${BASE_ENDPOINT.PROFILE_URL}${profile.uid})`;
   messageTelegram(message);
-};
-
-const getPositions = async (uid: string): Promise<IPositionDetail[]> => {
-  const params = {
-    encryptedUid: uid,
-    tradeType: "PERPETUAL",
-  };
-
-  const { data } = await request.post(API.GET_POSITION, params);
-  return data.otherPositionRetList;
 };
 
 const comparePosition = async (
@@ -109,7 +116,7 @@ const main = async () => {
   const data: IPosition[] = [];
 
   for (const profile of PROFILES) {
-    const newPositions: any[] = await getPositions(profile.uid);
+    const newPositions: any[] = await getOtherPosition(profile.uid);
     data.push({ uid: profile.uid, data: newPositions });
     comparePosition(profile, positions, newPositions);
   }
@@ -118,8 +125,9 @@ const main = async () => {
 };
 
 // main();
+// binance();
 
-// Schedule main() to run every 1 minutes
-cron.schedule("*/1 * * * *", () => {
+// Schedule main() to run every 30 seconds
+cron.schedule("*/30 * * * * *", () => {
   main();
 });

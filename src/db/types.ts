@@ -21,3 +21,14 @@ export interface IPositionDetail {
   tradeBefore: boolean;
   leverage: number;
 }
+
+export interface IPrice {
+  symbol: string;
+  markPrice: string;
+  indexPrice: string;
+  estimatedSettlePrice: string;
+  lastFundingRate: string;
+  interestRate: string;
+  nextFundingTime: number;
+  time: number;
+}

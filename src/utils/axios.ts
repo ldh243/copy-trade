@@ -1,9 +1,13 @@
 /* eslint-disable no-restricted-syntax */
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { BASE_URL } from "../constant/config";
+import { BASE_API, BINANCE_API } from "../constant/config";
 
 export const request = axios.create({
-  baseURL: BASE_URL,
+  baseURL: BASE_API,
+});
+
+export const binanceRequest = axios.create({
+  baseURL: BINANCE_API,
 });
 
 const handleSuccess = (res: AxiosResponse) => {
@@ -20,4 +24,6 @@ const handleError = async (err: AxiosError) => {
   const data = err?.response?.data;
   console.log(data);
 };
+
 request.interceptors.response.use(handleSuccess, handleError);
+binanceRequest.interceptors.response.use(handleSuccess, handleError);
