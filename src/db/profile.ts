@@ -10,8 +10,8 @@ export const PROFILES: IProfile[] = [
     uid: "C3E4F8054F0F7D951C28221A220A32EA",
   },
   {
-    username: "long94",
-    uid: "D0C9305EBE107FBB745379D7B6A8396A",
+    username: "mrwin68",
+    uid: "2154D02AD930F6C6E65C507DD73CB3E7",
   },
   {
     username: "NguyenDinhTamNA",
