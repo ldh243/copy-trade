@@ -17,7 +17,6 @@ const messageOpenOrDCAPosition = async (
   const isNew = oldPosition ? false : true;
   const cmd = newPosition.amount > 0 ? "Long" : "Short";
   const icon = newPosition.amount > 0 ? "🟢" : "🔴";
-  const markPrice = await getMarkPrice(newPosition.symbol);
 
   if (isNew) {
     message = `
@@ -29,18 +28,16 @@ Entry: \`${formatNumber(newPosition.entryPrice)}\` | Volume: \`${formatNumber(
 `;
   } else if (oldPosition) {
     message = `
-    ${icon} User _${profile.username}_ DCA #${
-      newPosition.symbol
-    } at entry ${formatNumber(markPrice)}
-${cmd} #${newPosition.symbol} x ${newPosition.leverage}
+    ${icon} User _${profile.username}_ DCA #${newPosition.symbol}
+${cmd} #${newPosition.symbol} x ${
+      newPosition.leverage
+    } | Entry: \`${formatNumber(newPosition.markPrice)}\`
 Old: Entry: \`${formatNumber(
       oldPosition.entryPrice
     )}\` | Volume: \`${formatNumber(oldPosition.amount)}\`
 New: Entry: \`${formatNumber(
       newPosition.entryPrice
-    )}\` | Volume: \`${formatNumber(
-      newPosition.amount
-    )}\` | Mark: \`${formatNumber(newPosition.markPrice)}\`
+    )}\` | Volume: \`${formatNumber(newPosition.amount)}\`
 `;
   }
 
