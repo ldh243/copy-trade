@@ -1,81 +1,14 @@
-import { BASE_ENDPOINT } from "./constant/config";
 import { IPosition, IPositionDetail, IProfile } from "./db/types";
 import cron from "node-cron";
 import { PROFILES } from "./db/profile";
-import { formatNumber } from "./utils/number";
-import { messageTelegram } from "./utils/telegram";
+import {
+  closePartOfPositionMsg,
+  closePositionMsg,
+  dcaPositionMsg,
+  openPositionMsg,
+} from "./utils/telegram";
 import { read, save } from "./utils/db";
-import { getMarkPrice, getOtherPosition } from "./binance";
-import { closeMyPosition } from "./account";
-
-const messageOpenOrDCAPosition = async (
-  profile: IProfile,
-  newPosition: IPositionDetail,
-  oldPosition?: IPositionDetail
-) => {
-  let message = "";
-
-  const isNew = oldPosition ? false : true;
-  const cmd = newPosition.amount > 0 ? "Long" : "Short";
-  const icon = newPosition.amount > 0 ? "🟢" : "🔴";
-
-  if (isNew) {
-    message = `
-    ${icon} User _${profile.username}_ make new position:
-${cmd} #${newPosition.symbol} x ${newPosition.leverage}
-Entry: \`${formatNumber(newPosition.entryPrice)}\` | Volume: \`${formatNumber(
-      newPosition.amount
-    )}\`
-`;
-  } else if (oldPosition) {
-    message = `
-    ${icon} User _${profile.username}_ DCA #${newPosition.symbol}
-${cmd} #${newPosition.symbol} x ${
-      newPosition.leverage
-    } | Entry: \`${formatNumber(newPosition.markPrice)}\`
-Old: Entry: \`${formatNumber(
-      oldPosition.entryPrice
-    )}\` | Volume: \`${formatNumber(oldPosition.amount)}\`
-New: Entry: \`${formatNumber(
-      newPosition.entryPrice
-    )}\` | Volume: \`${formatNumber(newPosition.amount)}\`
-`;
-  }
-
-  //add profile url
-  message += `Check out profile [here](${BASE_ENDPOINT.PROFILE_URL}${profile.uid})`;
-  messageTelegram(message);
-};
-const messageClosePosition = async (
-  profile: IProfile,
-  closePosition: IPositionDetail
-) => {
-  let message = "";
-  const closePrice = await getMarkPrice(closePosition.symbol);
-  const entryPrice = closePosition.entryPrice;
-  const cmd = closePosition.amount > 0 ? "Long" : "Short";
-  const icon = closePosition.amount > 0 ? "🟢" : "🔴";
-
-  const profit = (closePrice - entryPrice) * closePosition.amount;
-  const percentage =
-    ((closePrice - entryPrice) / closePrice) *
-    closePosition.leverage *
-    (closePosition.amount > 0 ? 1 : -1);
-
-  message = `
-    ${icon} User _${profile.username}_ has closed position:
-${cmd} #${closePosition.symbol} x ${closePosition.leverage}
-Entry price: ${formatNumber(entryPrice)} | Close price: ${formatNumber(
-    closePrice
-  )} | Profit: ${formatNumber(profit, 2)}(${formatNumber(percentage * 100, 2)}%)
-`;
-
-  //add profile url
-  message += `Check out profile [here](${BASE_ENDPOINT.PROFILE_URL}${profile.uid})`;
-  messageTelegram(message);
-
-  closeMyPosition(profile.username, closePosition.symbol, cmd);
-};
+import { getOtherPosition } from "./binance";
 
 const comparePosition = async (
   profile: IProfile,
@@ -91,11 +24,19 @@ const comparePosition = async (
     const currentPositionBySymbol = currentPositions?.data.find(
       (currentPosition) => currentPosition.symbol === newPosition.symbol
     );
-    if (
-      currentPositionBySymbol?.amount !== newPosition.amount ||
-      currentPositionBySymbol?.entryPrice !== newPosition.entryPrice
+    if (!currentPositionBySymbol) {
+      openPositionMsg(profile, newPosition);
+    } else if (
+      Math.abs(currentPositionBySymbol.amount) - Math.abs(newPosition.amount) >
+        0 &&
+      currentPositionBySymbol.entryPrice === newPosition.entryPrice
     ) {
-      messageOpenOrDCAPosition(profile, newPosition, currentPositionBySymbol);
+      closePartOfPositionMsg(profile, newPosition, currentPositionBySymbol);
+    } else if (
+      currentPositionBySymbol.amount !== newPosition.amount ||
+      currentPositionBySymbol.entryPrice !== newPosition.entryPrice
+    ) {
+      dcaPositionMsg(profile, newPosition, currentPositionBySymbol);
     }
   });
 
@@ -105,7 +46,7 @@ const comparePosition = async (
       (newPosition) => newPosition.symbol === currentPosition.symbol
     );
     if (newPositionBySymbol === -1) {
-      messageClosePosition(profile, currentPosition);
+      closePositionMsg(profile, currentPosition);
     }
   });
 };
@@ -130,3 +71,22 @@ const main = async () => {
 cron.schedule("*/30 * * * * *", () => {
   main();
 });
+
+/**
+ * *1. Test open new position by remove
+ *
+ * *2. Test close position by add another position
+ * * - close Long with profit > 0
+ * * - close Long with profit < 0
+ * * - close Short with profit > 0
+ * * - close Short with profit < 0
+ *
+ * *3. Test dca position by different entry and different amount
+ *
+ * *4. Test close a part of position by the same entry and different amount
+ * * - close Long with profit > 0
+ * * - close Long with profit < 0
+ * * - close Short with profit > 0
+ * * - close Short with profit < 0
+ *
+ */
