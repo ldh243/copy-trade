@@ -72,7 +72,10 @@ export const closePositionMsg = async (
   const entryPrice = closePosition.entryPrice;
   const cmd = closePosition.amount > 0 ? "Long" : "Short";
   const icon = closePosition.amount > 0 ? "🟢" : "🔴";
-  const profit = (closePrice - entryPrice) * closePosition.amount;
+  const profit =
+    (closePrice - entryPrice) *
+    closePosition.amount *
+    (closePosition.amount > 0 ? 1 : -1);
   const percentage =
     (profit / (closePosition.amount * closePrice)) * closePosition.leverage;
 
