@@ -2,6 +2,7 @@ import { Telegraf } from "telegraf";
 import {
   BASE_ENDPOINT,
   TELEGRAM_CHANNEL_ID,
+  TELEGRAM_CHANNEL_ID_LADUY,
   TELEGRAM_KEY,
 } from "../constant/config";
 import { IPositionDetail, IProfile } from "../db/types";
@@ -21,6 +22,12 @@ export const messageTelegram = (content: string, profile?: IProfile) => {
   bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID, message, {
     parse_mode: "Markdown",
   });
+
+  if (message.includes("LaDuy")) {
+    bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID_LADUY, message, {
+      parse_mode: "Markdown",
+    });
+  }
 };
 
 export const openPositionMsg = (
