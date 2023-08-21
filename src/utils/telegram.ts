@@ -15,10 +15,10 @@ export const messageTelegram = (content: string, profile?: IProfile) => {
   let message = content;
   console.log("==========================================================");
   console.log(content);
-  if (profile) {
-    //add profile url
-    message += `Check out profile [here](${BASE_ENDPOINT.PROFILE_URL}${profile.uid})`;
-  }
+  // if (profile) {
+  //   //add profile url
+  //   message += `Check out profile [here](${BASE_ENDPOINT.PROFILE_URL}${profile.uid})`;
+  // }
   bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID, message, {
     parse_mode: "Markdown",
   });
