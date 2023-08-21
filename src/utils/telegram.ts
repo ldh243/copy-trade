@@ -77,7 +77,9 @@ export const closePositionMsg = async (
     closePosition.amount *
     (closePosition.amount > 0 ? 1 : -1);
   const percentage =
-    (profit / (closePosition.amount * closePrice)) * closePosition.leverage;
+    (profit / (closePosition.amount * closePrice)) *
+    closePosition.leverage *
+    (closePosition.amount > 0 ? 1 : -1);
 
   message = `
     ${icon} User _${profile.username}_ has closed position:
@@ -104,7 +106,10 @@ export const closePartOfPositionMsg = async (
   const closeAmount =
     Math.abs(oldPosition.amount - closePosition.amount) *
     (closePosition.amount > 0 ? 1 : -1);
-  const profit = (closePrice - entryPrice) * closeAmount;
+  const profit =
+    (closePrice - entryPrice) *
+    closeAmount *
+    (closePosition.amount > 0 ? 1 : -1);
   const percentage =
     ((closePrice - entryPrice) / closePrice) *
     closePosition.leverage *
