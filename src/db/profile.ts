@@ -22,3 +22,9 @@ export const PROFILES: IProfile[] = [
     uid: "C5E7178CDBF2C187ABFA59FBEEC229AD",
   },
 ];
+
+export const CLOSE_PROFILE: string[] = [
+  "Smartestmoneydoteth",
+  "mrwin68",
+  "NguyenDinhTamNA",
+];

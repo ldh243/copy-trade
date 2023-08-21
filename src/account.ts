@@ -1,4 +1,5 @@
 import { getAccountPosition, getMarkPrice, makeOrder } from "./binance";
+import { CLOSE_PROFILE } from "./db/profile";
 import { IAccountPositionDetail } from "./db/types";
 import { formatNumber } from "./utils/number";
 import { messageTelegram } from "./utils/telegram";
@@ -8,7 +9,8 @@ export const closeMyPosition = async (
   symbol: string,
   cmd: string
 ) => {
-  if (username !== "Smartestmoneydoteth") return;
+  // if (username !== "Smartestmoneydoteth") return;
+  if (!CLOSE_PROFILE.includes(username)) return;
 
   const myPositions = await getAccountPosition();
   const positionBySymbol = myPositions.find(
