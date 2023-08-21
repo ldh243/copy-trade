@@ -79,21 +79,20 @@ export const closePositionMsg = async (
   const entryPrice = closePosition.entryPrice;
   const cmd = closePosition.amount > 0 ? "Long" : "Short";
   const icon = closePosition.amount > 0 ? "🟢" : "🔴";
-  const profit =
-    (closePrice - entryPrice) *
-    closePosition.amount *
-    (closePosition.amount > 0 ? 1 : -1);
+  const profit = (closePrice - entryPrice) * closePosition.amount;
   const percentage =
-    (profit / (closePosition.amount * closePrice)) *
-    closePosition.leverage *
-    (closePosition.amount > 0 ? 1 : -1);
+    (profit / (Math.abs(closePosition.amount) * closePrice)) *
+    closePosition.leverage;
 
   message = `
     ${icon} User _${profile.username}_ has closed position:
 ${cmd} #${closePosition.symbol} x ${closePosition.leverage}
-Entry price: ${formatNumber(entryPrice)} | Close price: ${formatNumber(
+Entry price: \`${formatNumber(entryPrice)}\` | Close price: \`${formatNumber(
     closePrice
-  )} | Profit: ${formatNumber(profit, 2)}(${formatNumber(percentage * 100, 2)}%)
+  )}\` | Profit: ${formatNumber(profit, 2)}(${formatNumber(
+    percentage * 100,
+    2
+  )}%)
 `;
 
   messageTelegram(message, profile);
@@ -113,24 +112,22 @@ export const closePartOfPositionMsg = async (
   const closeAmount =
     Math.abs(oldPosition.amount - closePosition.amount) *
     (closePosition.amount > 0 ? 1 : -1);
-  const profit =
-    (closePrice - entryPrice) *
-    closeAmount *
-    (closePosition.amount > 0 ? 1 : -1);
+  const profit = (closePrice - entryPrice) * closeAmount;
   const percentage =
-    ((closePrice - entryPrice) / closePrice) *
-    closePosition.leverage *
-    (closePosition.amount > 0 ? 1 : -1);
+    (profit / (Math.abs(closeAmount) * closePrice)) * closePosition.leverage;
 
   message = `
     ${icon} User _${profile.username}_ has closed a part of position:
 ${cmd} #${closePosition.symbol} x ${closePosition.leverage}
-Entry price: ${formatNumber(entryPrice)} | Remaining Amount: ${formatNumber(
-    closePosition.amount
-  )} 
-Close price: ${formatNumber(closePrice)} | Amount: ${formatNumber(
+Entry price: \`${formatNumber(
+    entryPrice
+  )}\` | Remaining Amount: \`${formatNumber(closePosition.amount)}\` 
+Close price: \`${formatNumber(closePrice)}\` | Amount: \`${formatNumber(
     closeAmount
-  )} | Profit: ${formatNumber(profit, 2)}(${formatNumber(percentage * 100, 2)}%)
+  )}\` | Profit: ${formatNumber(profit, 2)}(${formatNumber(
+    percentage * 100,
+    2
+  )}%)
 `;
   messageTelegram(message, profile);
 };
