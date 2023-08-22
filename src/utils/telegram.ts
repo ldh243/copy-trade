@@ -140,7 +140,7 @@ export const alertPositionByProfile = async (
   );
 
   if (currentPositions && currentPositions.data.length === 0) {
-    messageTelegram(`User _${profile.username}_ đã đóng hết mẹ lệnh rồi!`);
+    messageTelegram(`User _${profile.username}_ hết lệnh, nghỉ trade!`);
   }
 
   if (currentPositions) {
