@@ -81,8 +81,8 @@ cron.schedule("*/15 * * * * *", () => {
   main();
 });
 
-// Schedule main() to run every 15 minutes
-cron.schedule("*/10 * * * *", () => {
+// Schedule main() to run every 45 minutes
+cron.schedule("*/45 * * * *", () => {
   alertPosition();
 });
 
