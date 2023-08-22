@@ -18,7 +18,7 @@ export const messageTelegram = (content: string, profile?: IProfile) => {
   //   //add profile url
   //   message += `Check out profile [here](${BASE_ENDPOINT.PROFILE_URL}${profile.uid})`;
   // }
-  bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID, message, {
+  bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID_LADUY, message, {
     parse_mode: "Markdown",
   });
 
