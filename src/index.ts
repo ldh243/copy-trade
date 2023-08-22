@@ -76,15 +76,15 @@ const main = async () => {
 
 // main();
 
-// Schedule main() to run every 30 seconds
-cron.schedule("*/15 * * * * *", () => {
+// Schedule main() to run every 15 seconds
+setInterval(() => {
   main();
-});
+}, 15 * 1000);
 
 // Schedule main() to run every 45 minutes
-cron.schedule("*/45 * * * *", () => {
+setInterval(() => {
   alertPosition();
-});
+}, 45 * 60 * 1000);
 
 /**
  * *1. Test open new position by remove
