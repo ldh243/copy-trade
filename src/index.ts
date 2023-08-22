@@ -68,7 +68,7 @@ const main = async () => {
 // main();
 
 // Schedule main() to run every 30 seconds
-cron.schedule("*/30 * * * * *", () => {
+cron.schedule("*/15 * * * * *", () => {
   main();
 });
 
