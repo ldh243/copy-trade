@@ -1,11 +1,10 @@
 import { Telegraf } from "telegraf";
 import {
-  BASE_ENDPOINT,
   TELEGRAM_CHANNEL_ID,
   TELEGRAM_CHANNEL_ID_LADUY,
   TELEGRAM_KEY,
 } from "../constant/config";
-import { IPositionDetail, IProfile } from "../db/types";
+import { IPosition, IPositionDetail, IProfile } from "../db/types";
 import { formatNumber } from "./number";
 import { getMarkPrice } from "../binance";
 import { closeMyPosition } from "../account";
@@ -23,7 +22,7 @@ export const messageTelegram = (content: string, profile?: IProfile) => {
     parse_mode: "Markdown",
   });
 
-  if (message.includes("LaDuy")) {
+  if (message.includes("laduy")) {
     bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID_LADUY, message, {
       parse_mode: "Markdown",
     });
@@ -130,4 +129,37 @@ Close price: \`${formatNumber(closePrice)}\` | Amount: \`${formatNumber(
   )}%)
 `;
   messageTelegram(message, profile);
+};
+
+export const alertPositionByProfile = async (
+  positions: IPosition[],
+  profile: IProfile
+) => {
+  const currentPositions = positions.find(
+    (pos: IPosition) => pos.uid === profile.uid
+  );
+
+  if (currentPositions) {
+    let message = `User _${profile.username}_ current position:`;
+    for await (const position of currentPositions.data) {
+      const cmd = position.amount > 0 ? "Long" : "Short";
+      const icon = position.amount > 0 ? "🟢" : "🔴";
+      const currentPrice = await getMarkPrice(position.symbol);
+      const profit = (currentPrice - position.entryPrice) * position.amount;
+      const percentage =
+        (profit / (Math.abs(position.amount) * currentPrice)) *
+        position.leverage;
+      console.log("abc");
+      message += `
+${icon} ${cmd} #${position.symbol} x ${position.leverage}
+Entry: \`${formatNumber(position.entryPrice)}\` | Volume: \`${formatNumber(
+        position.amount
+      )}\`| Profit: ${formatNumber(profit, 2)}(${formatNumber(
+        percentage * 100,
+        2
+      )}%)
+    `;
+    }
+    messageTelegram(message);
+  }
 };

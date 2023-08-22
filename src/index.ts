@@ -2,6 +2,7 @@ import { IPosition, IPositionDetail, IProfile } from "./db/types";
 import cron from "node-cron";
 import { PROFILES } from "./db/profile";
 import {
+  alertPositionByProfile,
   closePartOfPositionMsg,
   closePositionMsg,
   dcaPositionMsg,
@@ -51,6 +52,14 @@ const comparePosition = async (
   });
 };
 
+const alertPosition = async () => {
+  const profile = PROFILES.find((el) => el.username.includes("laduy"));
+  const positions = await read();
+  if (profile) {
+    alertPositionByProfile(positions, profile);
+  }
+};
+
 const main = async () => {
   const positions = await read();
 
@@ -70,6 +79,11 @@ const main = async () => {
 // Schedule main() to run every 30 seconds
 cron.schedule("*/15 * * * * *", () => {
   main();
+});
+
+// Schedule main() to run every 15 minutes
+cron.schedule("*/10 * * * *", () => {
+  alertPosition();
 });
 
 /**
