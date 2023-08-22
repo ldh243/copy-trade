@@ -139,6 +139,10 @@ export const alertPositionByProfile = async (
     (pos: IPosition) => pos.uid === profile.uid
   );
 
+  if (currentPositions && currentPositions.data.length === 0) {
+    messageTelegram(`User _${profile.username}_ đã đóng hết mẹ lệnh rồi!`);
+  }
+
   if (currentPositions) {
     let message = `User _${profile.username}_ current position:`;
     for await (const position of currentPositions.data) {
