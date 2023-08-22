@@ -7,7 +7,7 @@ export const formatNumber = (num: any, scale = 8) => {
 
   let formatString = `0,0`;
   if (scale) {
-    formatString += `[.]${`0`.repeat(scale)}`;
+    formatString += `.[${`0`.repeat(scale)}]`;
   }
   return numeral(num).format(formatString, Math.floor);
 };
