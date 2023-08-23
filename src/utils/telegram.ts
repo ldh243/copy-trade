@@ -48,19 +48,17 @@ Volume: \`${formatNumber(newPosition.amount)}\` ${coinName}
 
 export const dcaPositionMsg = (
   profile: IProfile,
-  newPosition: IPositionDetail,
-  oldPosition: IPositionDetail
+  newPosition: IPositionDetail
 ) => {
   const cmd = newPosition.amount > 0 ? "Long" : "Short";
   const icon = newPosition.amount > 0 ? "🟢" : "🔴";
-  const dcaAmount = newPosition.amount - oldPosition.amount;
   const { coinName, tether } = getCoinName(newPosition.symbol);
 
   let message = `
 _${profile.username}_ vừa DCA thêm #${newPosition.symbol}
 ${icon} ${cmd} #${newPosition.symbol} x ${newPosition.leverage}
 Entry: \`${formatNumber(newPosition.markPrice)}\`
-Volume: \`${formatNumber(dcaAmount)}\` ${coinName}
+Volume: \`${formatNumber(newPosition.amount)}\` ${coinName}
 Profit: \`${formatNumber(newPosition.pnl)}\` ${tether}
   `;
   messageTelegram(message, profile);
