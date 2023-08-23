@@ -137,7 +137,10 @@ export const alertPositionByProfile = async (
   );
 
   if (currentPositions && currentPositions.data.length === 0) {
-    messageTelegram(`_${profile.username}_ hết lệnh rồi, báo vui thôi!`);
+    messageTelegram(`
+_${profile.username}_ hết lệnh rồi, báo vui thôi!
+`);
+    return;
   }
 
   if (currentPositions) {
