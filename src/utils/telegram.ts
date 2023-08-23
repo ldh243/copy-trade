@@ -79,13 +79,16 @@ export const closePositionMsg = async (
   const percentage =
     (profit / (Math.abs(closePosition.amount) * closePrice)) *
     closePosition.leverage;
-
+  const { tether } = getCoinName(closePosition.symbol);
   message = `
 _${profile.username}_ đã đóng lệnh:
 ${icon} ${cmd} #${closePosition.symbol} x ${closePosition.leverage}
 Entry price: \`${formatNumber(entryPrice)}\`
 Close price: \`${formatNumber(closePrice)}\`
-Profit: \`${formatNumber(profit, 2)}\` (${formatNumber(percentage * 100, 2)}%)
+Profit: \`${formatNumber(profit, 2)}\` ${tether} (${formatNumber(
+    percentage * 100,
+    2
+  )}%)
 `;
 
   messageTelegram(message, profile);
