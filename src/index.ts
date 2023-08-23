@@ -81,10 +81,10 @@ setInterval(() => {
   main();
 }, 15 * 1000);
 
-// Schedule main() to run every 45 minutes
+// Schedule main() to run every 90 minutes
 setInterval(() => {
   alertPosition();
-}, 45 * 60 * 1000);
+}, 90 * 60 * 1000);
 
 /**
  * *1. Test open new position by remove

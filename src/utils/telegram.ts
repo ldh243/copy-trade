@@ -8,16 +8,16 @@ import { IPosition, IPositionDetail, IProfile } from "../db/types";
 import { formatNumber } from "./number";
 import { getMarkPrice } from "../binance";
 import { closeMyPosition } from "../account";
+import { getCoinName } from "./string";
+const bot = new Telegraf(TELEGRAM_KEY);
 
 export const messageTelegram = (content: string, profile?: IProfile) => {
-  const bot = new Telegraf(TELEGRAM_KEY);
   let message = content;
   console.log("==========================================================");
   console.log(content);
-  // if (profile) {
-  //   //add profile url
-  //   message += `Check out profile [here](${BASE_ENDPOINT.PROFILE_URL}${profile.uid})`;
-  // }
+
+  message = "📣 *MẤY ĐỨA YÊN NGHE BOT NÓI* 📣" + message;
+
   bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID, message, {
     parse_mode: "Markdown",
   });
@@ -35,13 +35,13 @@ export const openPositionMsg = (
 ) => {
   const cmd = newPosition.amount > 0 ? "Long" : "Short";
   const icon = newPosition.amount > 0 ? "🟢" : "🔴";
+  const { coinName } = getCoinName(newPosition.symbol);
 
   let message = `
-    ${icon} User _${profile.username}_ make new position:
-${cmd} #${newPosition.symbol} x ${newPosition.leverage}
-Entry: \`${formatNumber(newPosition.entryPrice)}\` | Volume: \`${formatNumber(
-    newPosition.amount
-  )}\`
+_${profile.username}_ vừa mở lệnh kìa:
+${icon} *${cmd}* #${newPosition.symbol} x ${newPosition.leverage}
+Entry: \`${formatNumber(newPosition.entryPrice)}\`
+Volume: \`${formatNumber(newPosition.amount)}\` ${coinName}
 `;
   messageTelegram(message, profile);
 };
@@ -53,19 +53,16 @@ export const dcaPositionMsg = (
 ) => {
   const cmd = newPosition.amount > 0 ? "Long" : "Short";
   const icon = newPosition.amount > 0 ? "🟢" : "🔴";
+  const dcaAmount = newPosition.amount - oldPosition.amount;
+  const { coinName, tether } = getCoinName(newPosition.symbol);
 
   let message = `
-  ${icon} User _${profile.username}_ DCA #${newPosition.symbol}
-${cmd} #${newPosition.symbol} x ${
-    newPosition.leverage
-  } | Entry: \`${formatNumber(newPosition.markPrice)}\`
-Old: Entry: \`${formatNumber(
-    oldPosition.entryPrice
-  )}\` | Volume: \`${formatNumber(oldPosition.amount)}\`
-New: Entry: \`${formatNumber(
-    newPosition.entryPrice
-  )}\` | Volume: \`${formatNumber(newPosition.amount)}\`
-`;
+_${profile.username}_ vừa DCA thêm #${newPosition.symbol}
+${icon} ${cmd} #${newPosition.symbol} x ${newPosition.leverage}
+Entry: \`${formatNumber(newPosition.markPrice)}\`
+Volume: \`${formatNumber(dcaAmount)}\` ${coinName}
+Profit: \`${formatNumber(newPosition.pnl)}\` ${tether}
+  `;
   messageTelegram(message, profile);
 };
 
@@ -84,14 +81,11 @@ export const closePositionMsg = async (
     closePosition.leverage;
 
   message = `
-    ${icon} User _${profile.username}_ has closed position:
-${cmd} #${closePosition.symbol} x ${closePosition.leverage}
-Entry price: \`${formatNumber(entryPrice)}\` | Close price: \`${formatNumber(
-    closePrice
-  )}\` | Profit: ${formatNumber(profit, 2)}(${formatNumber(
-    percentage * 100,
-    2
-  )}%)
+_${profile.username}_ đã đóng lệnh:
+${icon} ${cmd} #${closePosition.symbol} x ${closePosition.leverage}
+Entry price: \`${formatNumber(entryPrice)}\`
+Close price: \`${formatNumber(closePrice)}\`
+Profit: \`${formatNumber(profit, 2)}\` (${formatNumber(percentage * 100, 2)}%)
 `;
 
   messageTelegram(message, profile);
@@ -140,11 +134,12 @@ export const alertPositionByProfile = async (
   );
 
   if (currentPositions && currentPositions.data.length === 0) {
-    messageTelegram(`User _${profile.username}_ hết lệnh, nghỉ trade!`);
+    messageTelegram(`_${profile.username}_ hết lệnh rồi, báo vui thôi!`);
   }
 
   if (currentPositions) {
-    let message = `User _${profile.username}_ current position:`;
+    let message = `
+_${profile.username}_ có các vị thế hiện tại là:`;
     for await (const position of currentPositions.data) {
       const cmd = position.amount > 0 ? "Long" : "Short";
       const icon = position.amount > 0 ? "🟢" : "🔴";
@@ -152,17 +147,19 @@ export const alertPositionByProfile = async (
       const profit = (currentPrice - position.entryPrice) * position.amount;
       const percentage =
         (profit / (Math.abs(position.amount) * currentPrice)) *
-        position.leverage;
-      console.log("abc");
+        position.leverage *
+        100;
+
+      const { coinName, tether } = getCoinName(position.symbol);
       message += `
-${icon} ${cmd} #${position.symbol} x ${position.leverage}
-Entry: \`${formatNumber(position.entryPrice)}\` | Volume: \`${formatNumber(
-        position.amount
-      )}\`| Profit: ${formatNumber(profit, 2)}(${formatNumber(
-        percentage * 100,
+${icon} *${cmd}* #${position.symbol} x ${position.leverage}
+Entry: \`${formatNumber(position.entryPrice)}\`
+Volume: \`${formatNumber(position.amount)}\` ${coinName}
+Profit: \`${formatNumber(profit, 2)}\` ${tether} (${formatNumber(
+        percentage,
         2
       )}%)
-    `;
+`;
     }
     messageTelegram(message);
   }

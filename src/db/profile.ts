@@ -14,10 +14,6 @@ export const PROFILES: IProfile[] = [
     uid: "538E78E33A3B0363FC37E393EB334103",
   },
   {
-    username: "long94",
-    uid: "D0C9305EBE107FBB745379D7B6A8396A",
-  },
-  {
     username: "#laduymauxanh",
     uid: "C5E7178CDBF2C187ABFA59FBEEC229AD",
   },
@@ -27,4 +23,5 @@ export const CLOSE_PROFILE: string[] = [
   "Smartestmoneydoteth",
   "mrwin68",
   "NguyenDinhTamNA",
+  "#laduymauxanh",
 ];
