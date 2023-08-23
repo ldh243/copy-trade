@@ -3,7 +3,7 @@ import numeral from "numeral";
 
 export const formatNumber = (num: any, scale = 8) => {
   // Avoid scientist format
-  if (Number(num) < 1) return fixed(num, scale);
+  // if (Number(num) < 1) return fixed(num, scale);
 
   let formatString = `0,0`;
   if (scale) {
