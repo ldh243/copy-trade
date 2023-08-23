@@ -16,7 +16,7 @@ export const messageTelegram = (content: string, profile?: IProfile) => {
   console.log("==========================================================");
   console.log(content);
 
-  message = "📣 *MẤY ĐỨA YÊN NGHE BOT NÓI* 📣" + message;
+  message = "📣 *CHÚ Ý* 📣" + message;
 
   bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID, message, {
     parse_mode: "Markdown",
