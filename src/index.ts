@@ -23,7 +23,9 @@ const comparePosition = async (
   //check DCA or open new position
   newPositions.forEach((newPosition: IPositionDetail) => {
     const currentPositionBySymbol = currentPositions?.data.find(
-      (currentPosition) => currentPosition.symbol === newPosition.symbol
+      (currentPosition) =>
+        currentPosition.symbol === newPosition.symbol &&
+        currentPosition.type === newPosition.type
     );
     if (!currentPositionBySymbol) {
       openPositionMsg(profile, newPosition);
@@ -37,14 +39,16 @@ const comparePosition = async (
       currentPositionBySymbol.amount !== newPosition.amount ||
       currentPositionBySymbol.entryPrice !== newPosition.entryPrice
     ) {
-      dcaPositionMsg(profile, newPosition, currentPositionBySymbol);
+      dcaPositionMsg(profile, newPosition);
     }
   });
 
   //check close position
   currentPositions?.data.forEach((currentPosition: IPositionDetail) => {
     const newPositionBySymbol = newPositions.findIndex(
-      (newPosition) => newPosition.symbol === currentPosition.symbol
+      (newPosition) =>
+        newPosition.symbol === currentPosition.symbol &&
+        newPosition.type === currentPosition.type
     );
     if (newPositionBySymbol === -1) {
       closePositionMsg(profile, currentPosition);
@@ -74,7 +78,7 @@ const main = async () => {
   save(data);
 };
 
-// main();
+alertPosition();
 
 // Schedule main() to run every 15 seconds
 setInterval(() => {

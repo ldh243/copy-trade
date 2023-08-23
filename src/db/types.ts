@@ -9,6 +9,7 @@ export interface IProfile {
 }
 
 export interface IPositionDetail {
+  type: string;
   symbol: string;
   entryPrice: number;
   markPrice: number;

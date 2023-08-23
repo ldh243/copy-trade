@@ -20,9 +20,14 @@ export const BINANCE_ENDPOINT = {
   MAKE_ORDER: "/fapi/v1/order",
 };
 
+export const TYPE = {
+  LONG: "Long",
+  SHORT: "Short",
+};
+
 export const DB_PATH = `src/db/data.json`;
 
 export const TELEGRAM_KEY = "6434359396:AAE71LMPXQbosw5Gl2oRGzYDNs7TEUmn1UU";
 export const TELEGRAM_CHANNEL_ID = "-1001727681681"; //main group
 export const TELEGRAM_CHANNEL_ID_LADUY = "-1001891874057"; //laduy signal channel
-// export const TELEGRAM_CHANNEL_ID_LADUY = "-798774213";
+// export const TELEGRAM_CHANNEL_ID_LADUY = "-1001858304466";

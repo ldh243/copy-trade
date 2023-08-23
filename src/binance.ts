@@ -1,5 +1,10 @@
 import crypto from "crypto";
-import { API_SECRET, BASE_ENDPOINT, BINANCE_ENDPOINT } from "./constant/config";
+import {
+  API_SECRET,
+  BASE_ENDPOINT,
+  BINANCE_ENDPOINT,
+  TYPE,
+} from "./constant/config";
 import { binanceRequest, request } from "./utils/axios";
 import { IAccountPositionDetail, IPositionDetail, IPrice } from "./db/types";
 
@@ -21,7 +26,7 @@ export const getOtherPosition = async (
   };
 
   const { data } = await request.post(BASE_ENDPOINT.GET_POSITION, params);
-  return data.otherPositionRetList;
+  return addTypeToPosition(data.otherPositionRetList);
 };
 
 export const getAccountPosition = async (): Promise<
@@ -75,4 +80,14 @@ export const makeOrder = async (position: any): Promise<Boolean> => {
     null
   );
   return data ? true : false;
+};
+
+const addTypeToPosition = (positions: IPositionDetail[]): IPositionDetail[] => {
+  if (positions.length === 0) {
+    return [];
+  }
+  return positions.map((position: IPositionDetail) => ({
+    ...position,
+    type: position.amount > 0 ? TYPE.LONG : TYPE.SHORT,
+  }));
 };
