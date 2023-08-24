@@ -78,8 +78,6 @@ const main = async () => {
   save(data);
 };
 
-alertPosition();
-
 // Schedule main() to run every 15 seconds
 setInterval(() => {
   main();
