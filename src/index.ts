@@ -95,9 +95,9 @@ const main = async () => {
 
 // alertPosition();
 
-testMessage(
-  "La Duy thích số 14, mà nghe nói nam trồi nữ sụt, nay đánh 15 vậy!"
-);
+// testMessage(
+//   "La Duy thích số 14, mà nghe nói nam trồi nữ sụt, nay đánh 15 vậy!"
+// );
 
 // Schedule main() to run every 15 seconds
 setInterval(() => {
