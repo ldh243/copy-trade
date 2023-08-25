@@ -1,5 +1,5 @@
 import { Telegraf } from "telegraf";
-import { TELEGRAM_KEY } from "../constant/config";
+import { TELEGRAM_CHANNEL_ID_LADUY, TELEGRAM_KEY } from "../constant/config";
 import { IPosition, IPositionDetail, IProfile } from "../db/types";
 import { formatNumber } from "./number";
 import { getMarkPrice } from "../binance";
@@ -162,4 +162,10 @@ Profit: \`${formatNumber(profit, 2)}\` ${tether} (${formatNumber(
     }
     messageTelegram(message, profile);
   }
+};
+
+export const testMessage = (message: string) => {
+  bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID_LADUY, message, {
+    parse_mode: "Markdown",
+  });
 };

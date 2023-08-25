@@ -6,6 +6,7 @@ import {
   closePositionMsg,
   dcaPositionMsg,
   openPositionMsg,
+  testMessage,
 } from "./utils/telegram";
 import { read, save } from "./utils/db";
 import { getOtherPosition } from "./binance";
@@ -92,12 +93,11 @@ const main = async () => {
 
 // main();
 
-alertPosition();
+// alertPosition();
 
-// messageTelegram("Lô", {
-//   username: "#laduymauxanh",
-//   channelId: TELEGRAM_CHANNEL_ID_LADUY,
-// });
+testMessage(
+  "La Duy thích số 14, mà nghe nói nam trồi nữ sụt, nay đánh 15 vậy!"
+);
 
 // Schedule main() to run every 15 seconds
 setInterval(() => {
