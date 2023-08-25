@@ -15,7 +15,8 @@ export const messageTelegram = async (content: string, profile: IProfile) => {
 
   message = `📣 *CHÚ Ý* 📣` + message;
 
-  message += `Balance hiện tại: \`${formatNumber(balance, 2)}\``;
+  message += `
+*Balance hiện tại:* \`${formatNumber(balance, 2)}\``;
 
   bot.telegram.sendMessage(profile.channelId, message, {
     parse_mode: "Markdown",
