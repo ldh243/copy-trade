@@ -1,5 +1,4 @@
 import { IPosition, IPositionDetail, IProfile } from "./db/types";
-import cron from "node-cron";
 import { PROFILES } from "./db/profile";
 import {
   alertPositionByProfile,
@@ -10,6 +9,7 @@ import {
 } from "./utils/telegram";
 import { read, save } from "./utils/db";
 import { getOtherPosition } from "./binance";
+import { getOkexAccountPosition } from "./okex";
 
 const comparePosition = async (
   profile: IProfile,
@@ -17,7 +17,7 @@ const comparePosition = async (
   newPositions: IPositionDetail[]
 ) => {
   const currentPositions = positions.find(
-    (position: IPosition) => position.uid === profile.uid
+    (position: IPosition) => position.username === profile.username
   );
 
   //check DCA or open new position
@@ -64,19 +64,40 @@ const alertPosition = async () => {
   }
 };
 
+const getPosition = async (profile: IProfile): Promise<IPositionDetail[]> => {
+  let result: IPositionDetail[] = [];
+  if (profile.type === 1) {
+    result = await getOtherPosition(profile);
+  } else if (profile.type === 2) {
+    //not implement
+  } else {
+    result = await getOkexAccountPosition();
+  }
+  return result;
+};
+
 const main = async () => {
   const positions = await read();
 
   const data: IPosition[] = [];
 
   for (const profile of PROFILES) {
-    const newPositions: any[] = await getOtherPosition(profile.uid);
-    data.push({ uid: profile.uid, data: newPositions });
+    const newPositions: any[] = await getPosition(profile);
+    data.push({ username: profile.username, data: newPositions });
     comparePosition(profile, positions, newPositions);
   }
 
   save(data);
 };
+
+// main();
+
+alertPosition();
+
+// messageTelegram("Lô", {
+//   username: "#laduymauxanh",
+//   channelId: TELEGRAM_CHANNEL_ID_LADUY,
+// });
 
 // Schedule main() to run every 15 seconds
 setInterval(() => {

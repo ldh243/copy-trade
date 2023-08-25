@@ -3,10 +3,15 @@ import {
   API_SECRET,
   BASE_ENDPOINT,
   BINANCE_ENDPOINT,
-  TYPE,
+  POSITION_TYPE,
 } from "./constant/config";
 import { binanceRequest, request } from "./utils/axios";
-import { IAccountPositionDetail, IPositionDetail, IPrice } from "./db/types";
+import {
+  IAccountPositionDetail,
+  IPositionDetail,
+  IPrice,
+  IProfile,
+} from "./db/types";
 
 export const getMarkPrice = async (symbol: string): Promise<number> => {
   const data: IPrice = await binanceRequest.get(BINANCE_ENDPOINT.PRICE, {
@@ -18,14 +23,14 @@ export const getMarkPrice = async (symbol: string): Promise<number> => {
 };
 
 export const getOtherPosition = async (
-  uid: string
+  profile: IProfile
 ): Promise<IPositionDetail[]> => {
   const params = {
-    encryptedUid: uid,
+    encryptedUid: profile.uid,
     tradeType: "PERPETUAL",
   };
-
   const { data } = await request.post(BASE_ENDPOINT.GET_POSITION, params);
+
   return addTypeToPosition(data.otherPositionRetList);
 };
 
@@ -88,6 +93,6 @@ const addTypeToPosition = (positions: IPositionDetail[]): IPositionDetail[] => {
   }
   return positions.map((position: IPositionDetail) => ({
     ...position,
-    type: position.amount > 0 ? TYPE.LONG : TYPE.SHORT,
+    type: position.amount > 0 ? POSITION_TYPE.LONG : POSITION_TYPE.SHORT,
   }));
 };

@@ -1,11 +1,13 @@
 export interface IPosition {
-  uid: string;
+  username: string;
   data: IPositionDetail[];
 }
 
 export interface IProfile {
   username: string;
-  uid: string;
+  channelId: string;
+  uid?: string;
+  type?: number;
 }
 
 export interface IPositionDetail {
@@ -14,12 +16,7 @@ export interface IPositionDetail {
   entryPrice: number;
   markPrice: number;
   pnl: number;
-  roe: number;
-  updateTime: number[];
   amount: number;
-  updateTimeStamp: string;
-  yellow: boolean;
-  tradeBefore: boolean;
   leverage: number;
 }
 

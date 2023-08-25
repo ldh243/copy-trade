@@ -1,32 +1,25 @@
 import { Telegraf } from "telegraf";
-import {
-  TELEGRAM_CHANNEL_ID,
-  TELEGRAM_CHANNEL_ID_LADUY,
-  TELEGRAM_KEY,
-} from "../constant/config";
+import { TELEGRAM_KEY } from "../constant/config";
 import { IPosition, IPositionDetail, IProfile } from "../db/types";
 import { formatNumber } from "./number";
 import { getMarkPrice } from "../binance";
-import { closeMyPosition } from "../account";
 import { getCoinName } from "./string";
+import { getOkexBalance } from "../okex";
 const bot = new Telegraf(TELEGRAM_KEY);
 
-export const messageTelegram = (content: string, profile?: IProfile) => {
+export const messageTelegram = async (content: string, profile: IProfile) => {
+  const balance = await getOkexBalance();
   let message = content;
   console.log("==========================================================");
   console.log(content);
 
-  message = "📣 *CHÚ Ý* 📣" + message;
+  message = `📣 *CHÚ Ý* 📣` + message;
 
-  bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID, message, {
+  message += `Balance hiện tại: \`${formatNumber(balance, 2)}\``;
+
+  bot.telegram.sendMessage(profile.channelId, message, {
     parse_mode: "Markdown",
   });
-
-  if (message.includes("laduy")) {
-    bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID_LADUY, message, {
-      parse_mode: "Markdown",
-    });
-  }
 };
 
 export const openPositionMsg = (
@@ -35,13 +28,15 @@ export const openPositionMsg = (
 ) => {
   const cmd = newPosition.amount > 0 ? "Long" : "Short";
   const icon = newPosition.amount > 0 ? "🟢" : "🔴";
-  const { coinName } = getCoinName(newPosition.symbol);
+  const { tether } = getCoinName(newPosition.symbol);
 
   let message = `
 _${profile.username}_ vừa mở lệnh kìa:
 ${icon} *${cmd}* #${newPosition.symbol} x ${newPosition.leverage}
 Entry: \`${formatNumber(newPosition.entryPrice)}\`
-Volume: \`${formatNumber(newPosition.amount)}\` ${coinName}
+Volume: \`${formatNumber(
+    newPosition.amount * newPosition.entryPrice
+  )}\` ${tether}
 `;
   messageTelegram(message, profile);
 };
@@ -52,13 +47,15 @@ export const dcaPositionMsg = (
 ) => {
   const cmd = newPosition.amount > 0 ? "Long" : "Short";
   const icon = newPosition.amount > 0 ? "🟢" : "🔴";
-  const { coinName, tether } = getCoinName(newPosition.symbol);
+  const { tether } = getCoinName(newPosition.symbol);
 
   let message = `
 _${profile.username}_ vừa DCA thêm #${newPosition.symbol}
 ${icon} ${cmd} #${newPosition.symbol} x ${newPosition.leverage}
 Entry: \`${formatNumber(newPosition.markPrice)}\`
-Volume: \`${formatNumber(newPosition.amount)}\` ${coinName}
+Volume: \`${formatNumber(
+    newPosition.amount * newPosition.entryPrice
+  )}\` ${tether}
 Profit: \`${formatNumber(newPosition.pnl)}\` ${tether}
   `;
   messageTelegram(message, profile);
@@ -90,7 +87,7 @@ Profit: \`${formatNumber(profit, 2)}\` ${tether} (${formatNumber(
 `;
 
   messageTelegram(message, profile);
-  closeMyPosition(profile.username, closePosition.symbol, cmd);
+  // closeMyPosition(profile.username, closePosition.symbol, cmd);
 };
 
 export const closePartOfPositionMsg = async (
@@ -131,13 +128,10 @@ export const alertPositionByProfile = async (
   profile: IProfile
 ) => {
   const currentPositions = positions.find(
-    (pos: IPosition) => pos.uid === profile.uid
+    (pos: IPosition) => pos.username === profile.username
   );
 
   if (currentPositions && currentPositions.data.length === 0) {
-    messageTelegram(`
-_${profile.username}_ hết lệnh rồi, báo vui thôi!
-`);
     return;
   }
 
@@ -154,17 +148,17 @@ _${profile.username}_ có các vị thế hiện tại là:`;
         position.leverage *
         100;
 
-      const { coinName, tether } = getCoinName(position.symbol);
+      const { tether } = getCoinName(position.symbol);
       message += `
 ${icon} *${cmd}* #${position.symbol} x ${position.leverage}
 Entry: \`${formatNumber(position.entryPrice)}\`
-Volume: \`${formatNumber(position.amount)}\` ${coinName}
+Volume: \`${formatNumber(position.amount * position.entryPrice)}\` ${tether}
 Profit: \`${formatNumber(profit, 2)}\` ${tether} (${formatNumber(
         percentage,
         2
       )}%)
 `;
     }
-    messageTelegram(message);
+    messageTelegram(message, profile);
   }
 };

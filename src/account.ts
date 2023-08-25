@@ -40,6 +40,6 @@ Entry price: ${formatNumber(
       2
     )}
 `;
-    messageTelegram(message);
+    // messageTelegram(message);
   }
 };
