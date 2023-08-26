@@ -27,8 +27,7 @@ import { PROFILE_TYPE } from "./constant/config";
 const comparePosition = async (
   profile: IProfile,
   positions: IPosition[],
-  newPositions: IPositionDetail[],
-  instruments: OkexInstrument[]
+  newPositions: IPositionDetail[]
 ) => {
   const currentPositions = positions.find(
     (position: IPosition) => position.username === profile.username
@@ -60,7 +59,7 @@ const comparePosition = async (
   if (currentPositions?.data) {
     let okexPositionHistory: IPositionDetailHistory[] = [];
     if (profile.type === PROFILE_TYPE.OKEX_API) {
-      okexPositionHistory = await getOkexAccountPositionHistory(instruments);
+      okexPositionHistory = await getOkexAccountPositionHistory();
     }
     for await (const currentPosition of currentPositions?.data) {
       const newPositionBySymbol = newPositions.findIndex(
@@ -87,14 +86,17 @@ const alertPosition = async () => {
   }
 };
 
-const getPosition = async (profile: IProfile): Promise<IPositionDetail[]> => {
+const getPosition = async (
+  profile: IProfile,
+  instruments: OkexInstrument[]
+): Promise<IPositionDetail[]> => {
   let result: IPositionDetail[] = [];
   if (profile.type === PROFILE_TYPE.BINANCE_BOARD) {
     result = await getOtherPosition(profile);
   } else if (profile.type === PROFILE_TYPE.BINANCE_API) {
     //not implement yet
   } else if (profile.type === PROFILE_TYPE.OKEX_API) {
-    result = await getOkexAccountPosition();
+    result = await getOkexAccountPosition(instruments);
   }
   return result;
 };
@@ -107,9 +109,9 @@ const main = async () => {
   const data: IPosition[] = [];
 
   for (const profile of PROFILES) {
-    const newPositions: any[] = await getPosition(profile);
+    const newPositions: any[] = await getPosition(profile, instruments);
     data.push({ username: profile.username, data: newPositions });
-    comparePosition(profile, positions, newPositions, instruments);
+    comparePosition(profile, positions, newPositions);
   }
 
   save(data);
