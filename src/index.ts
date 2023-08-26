@@ -1,16 +1,23 @@
-import { IPosition, IPositionDetail, IProfile } from "./db/types";
+import {
+  IPosition,
+  IPositionDetail,
+  IPositionDetailHistory,
+  IProfile,
+} from "./db/types";
 import { PROFILES } from "./db/profile";
 import {
   alertPositionByProfile,
   closePartOfPositionMsg,
   closePositionMsg,
+  closePositionOkexMsg,
   dcaPositionMsg,
   openPositionMsg,
   testMessage,
 } from "./utils/telegram";
 import { read, save } from "./utils/db";
 import { getOtherPosition } from "./binance";
-import { getOkexAccountPosition } from "./okex";
+import { getOkexAccountPosition, getOkexAccountPositionHistory } from "./okex";
+import { PROFILE_TYPE } from "./constant/config";
 
 const comparePosition = async (
   profile: IProfile,
@@ -43,18 +50,27 @@ const comparePosition = async (
       dcaPositionMsg(profile, newPosition);
     }
   });
-
   //check close position
-  currentPositions?.data.forEach((currentPosition: IPositionDetail) => {
-    const newPositionBySymbol = newPositions.findIndex(
-      (newPosition) =>
-        newPosition.symbol === currentPosition.symbol &&
-        newPosition.type === currentPosition.type
-    );
-    if (newPositionBySymbol === -1) {
-      closePositionMsg(profile, currentPosition);
+  if (currentPositions?.data) {
+    let okexPositionHistory: IPositionDetailHistory[] = [];
+    if (profile.type === PROFILE_TYPE.OKEX_API) {
+      okexPositionHistory = await getOkexAccountPositionHistory();
     }
-  });
+    for await (const currentPosition of currentPositions?.data) {
+      const newPositionBySymbol = newPositions.findIndex(
+        (newPosition) =>
+          newPosition.symbol === currentPosition.symbol &&
+          newPosition.type === currentPosition.type
+      );
+      if (newPositionBySymbol === -1) {
+        if (profile.type === PROFILE_TYPE.OKEX_API) {
+          closePositionOkexMsg(profile, currentPosition, okexPositionHistory);
+        } else {
+          closePositionMsg(profile, currentPosition);
+        }
+      }
+    }
+  }
 };
 
 const alertPosition = async () => {
@@ -67,11 +83,11 @@ const alertPosition = async () => {
 
 const getPosition = async (profile: IProfile): Promise<IPositionDetail[]> => {
   let result: IPositionDetail[] = [];
-  if (profile.type === 1) {
+  if (profile.type === PROFILE_TYPE.BINANCE_BOARD) {
     result = await getOtherPosition(profile);
-  } else if (profile.type === 2) {
-    //not implement
-  } else {
+  } else if (profile.type === PROFILE_TYPE.BINANCE_API) {
+    //not implement yet
+  } else if (profile.type === PROFILE_TYPE.OKEX_API) {
     result = await getOkexAccountPosition();
   }
   return result;

@@ -1,6 +1,11 @@
 import { Telegraf } from "telegraf";
 import { TELEGRAM_CHANNEL_ID_LADUY, TELEGRAM_KEY } from "../constant/config";
-import { IPosition, IPositionDetail, IProfile } from "../db/types";
+import {
+  IPosition,
+  IPositionDetail,
+  IPositionDetailHistory,
+  IProfile,
+} from "../db/types";
 import { formatNumber } from "./number";
 import { getMarkPrice } from "../binance";
 import { getCoinName } from "./string";
@@ -27,13 +32,12 @@ export const openPositionMsg = (
   profile: IProfile,
   newPosition: IPositionDetail
 ) => {
-  const cmd = newPosition.amount > 0 ? "Long" : "Short";
   const icon = newPosition.amount > 0 ? "🟢" : "🔴";
   const { tether } = getCoinName(newPosition.symbol);
 
   let message = `
 _${profile.username}_ vừa mở lệnh kìa:
-${icon} *${cmd}* #${newPosition.symbol} x ${newPosition.leverage}
+${icon} *${newPosition.type}* #${newPosition.symbol} x ${newPosition.leverage}
 Entry: \`${formatNumber(newPosition.entryPrice)}\`
 Volume: \`${formatNumber(
     newPosition.amount * newPosition.entryPrice
@@ -46,13 +50,12 @@ export const dcaPositionMsg = (
   profile: IProfile,
   newPosition: IPositionDetail
 ) => {
-  const cmd = newPosition.amount > 0 ? "Long" : "Short";
   const icon = newPosition.amount > 0 ? "🟢" : "🔴";
   const { tether } = getCoinName(newPosition.symbol);
 
   let message = `
 _${profile.username}_ vừa DCA thêm #${newPosition.symbol}
-${icon} ${cmd} #${newPosition.symbol} x ${newPosition.leverage}
+${icon} ${newPosition.type} #${newPosition.symbol} x ${newPosition.leverage}
 Entry: \`${formatNumber(newPosition.markPrice)}\`
 Volume: \`${formatNumber(
     newPosition.amount * newPosition.entryPrice
@@ -69,7 +72,6 @@ export const closePositionMsg = async (
   let message = "";
   const closePrice = await getMarkPrice(closePosition.symbol);
   const entryPrice = closePosition.entryPrice;
-  const cmd = closePosition.amount > 0 ? "Long" : "Short";
   const icon = closePosition.amount > 0 ? "🟢" : "🔴";
   const profit = (closePrice - entryPrice) * closePosition.amount;
   const percentage =
@@ -78,7 +80,9 @@ export const closePositionMsg = async (
   const { tether } = getCoinName(closePosition.symbol);
   message = `
 _${profile.username}_ đã đóng lệnh:
-${icon} ${cmd} #${closePosition.symbol} x ${closePosition.leverage}
+${icon} ${closePosition.type} #${closePosition.symbol} x ${
+    closePosition.leverage
+  }
 Entry price: \`${formatNumber(entryPrice)}\`
 Close price: \`${formatNumber(closePrice)}\`
 Profit: \`${formatNumber(profit, 2)}\` ${tether} (${formatNumber(
@@ -99,7 +103,6 @@ export const closePartOfPositionMsg = async (
   let message = "";
   const closePrice = await getMarkPrice(closePosition.symbol);
   const entryPrice = closePosition.entryPrice;
-  const cmd = closePosition.amount > 0 ? "Long" : "Short";
   const icon = closePosition.amount > 0 ? "🟢" : "🔴";
   const closeAmount =
     Math.abs(oldPosition.amount - closePosition.amount) *
@@ -109,8 +112,8 @@ export const closePartOfPositionMsg = async (
     (profit / (Math.abs(closeAmount) * closePrice)) * closePosition.leverage;
 
   message = `
-    ${icon} User _${profile.username}_ has closed a part of position:
-${cmd} #${closePosition.symbol} x ${closePosition.leverage}
+${icon} User _${profile.username}_ has closed a part of position:
+${closePosition.type} #${closePosition.symbol} x ${closePosition.leverage}
 Entry price: \`${formatNumber(
     entryPrice
   )}\` | Remaining Amount: \`${formatNumber(closePosition.amount)}\` 
@@ -151,7 +154,7 @@ _${profile.username}_ có các vị thế hiện tại là:`;
 
       const { tether } = getCoinName(position.symbol);
       message += `
-${icon} *${cmd}* #${position.symbol} x ${position.leverage}
+${icon} *${position.type}* #${position.symbol} x ${position.leverage}
 Entry: \`${formatNumber(position.entryPrice)}\`
 Volume: \`${formatNumber(position.amount * position.entryPrice)}\` ${tether}
 Profit: \`${formatNumber(profit, 2)}\` ${tether} (${formatNumber(
@@ -168,4 +171,37 @@ export const testMessage = (message: string) => {
   bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID_LADUY, message, {
     parse_mode: "Markdown",
   });
+};
+
+export const closePositionOkexMsg = async (
+  profile: IProfile,
+  closePosition: IPositionDetail,
+  positionHistorys: IPositionDetailHistory[]
+) => {
+  const positionHistory = positionHistorys.find(
+    (pos: IPositionDetailHistory) => pos.posId === closePosition.id
+  );
+  let message = "";
+  const closePrice = Number(positionHistory?.closeAvgPx || 0);
+  const entryPrice = closePosition.entryPrice;
+  const icon = closePosition.amount > 0 ? "🟢" : "🔴";
+  const profit = Number(positionHistory?.pnl || 0);
+  const percentage =
+    (profit / (Math.abs(closePosition.amount) * closePrice)) *
+    closePosition.leverage;
+  const { tether } = getCoinName(closePosition.symbol);
+  message = `
+_${profile.username}_ đã đóng lệnh:
+${icon} ${closePosition.type} #${closePosition.symbol} x ${
+    closePosition.leverage
+  }
+Entry price: \`${formatNumber(entryPrice)}\`
+Close price: \`${formatNumber(closePrice)}\`
+Profit: \`${formatNumber(profit, 2)}\` ${tether} (${formatNumber(
+    percentage * 100,
+    2
+  )}%)
+`;
+
+  messageTelegram(message, profile);
 };

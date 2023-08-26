@@ -23,6 +23,7 @@ export const OKEX_API = "https://www.okex.com";
 export const OKEX_ENDPOINT = {
   GET_BALANCE: "/api/v5/account/balance",
   GET_POSITION: "/api/v5/account/positions",
+  GET_POSITION_HISTORY: "/api/v5/account/positions-history",
 };
 
 export const BINANCE_ENDPOINT = {
@@ -47,5 +48,5 @@ export const DB_PATH = `src/db/data.json`;
 export const TELEGRAM_KEY = "6434359396:AAE71LMPXQbosw5Gl2oRGzYDNs7TEUmn1UU";
 export const TELEGRAM_CHANNEL_ID = "-1001727681681"; //binance group
 export const TELEGRAM_CHANNEL_ID_LADUY = "-1001616885476"; //laduy channel
-// export const TELEGRAM_CHANNEL_ID_LADUY = "-1001976425498"; //laduy chat
+// export const TELEGRAM_CHANNEL_ID_LADUY = "-1001726367480"; //laduy chat
 // export const TELEGRAM_CHANNEL_ID_LADUY = "-1001858304466"; //group test trade

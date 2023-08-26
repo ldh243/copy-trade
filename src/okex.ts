@@ -1,5 +1,9 @@
 import { OKEX_ENDPOINT } from "./constant/config";
-import { IPositionDetail, IProfile } from "./db/types";
+import {
+  IPositionDetail,
+  IPositionDetailHistory,
+  OkexInstrument,
+} from "./db/types";
 import { okexRequest } from "./utils/axios";
 import { formatSymbolOkex, uppercaseFirstLetter } from "./utils/string";
 
@@ -13,29 +17,41 @@ export const getOkexBalance = async (): Promise<number> => {
 
 export const getOkexAccountPosition = async (): Promise<IPositionDetail[]> => {
   const { data } = await okexRequest.get(OKEX_ENDPOINT.GET_POSITION);
-  console.log(data);
-  return genericPosition(data);
+  const instruments = await getOkexInstrument("SWAP");
+  return genericPosition(data, instruments);
+};
+
+export const getOkexAccountPositionHistory = async (): Promise<
+  IPositionDetailHistory[]
+> => {
+  const { data } = await okexRequest.get(OKEX_ENDPOINT.GET_POSITION_HISTORY);
+  return data;
 };
 
 const getOkexInstrument = async (
-  instId: string,
   instType: string
-): Promise<number> => {
+): Promise<OkexInstrument[]> => {
   const { data } = await okexRequest.get("/api/v5/public/instruments", {
     params: {
       instType,
-      instId,
     },
   });
-  return Number(data[0].ctVal);
+  return data;
 };
 
-const genericPosition = async (positions: any): Promise<IPositionDetail[]> => {
+const genericPosition = async (
+  positions: any,
+  instruments: OkexInstrument[]
+): Promise<IPositionDetail[]> => {
   const result: Promise<IPositionDetail>[] = positions.map(
     async (position: any) => {
-      const rate = await getOkexInstrument(position.instId, position.instType);
-      const amount = Number(position.availPos) * rate;
+      const rate =
+        instruments.find(
+          (instrument: OkexInstrument) => position.instId === instrument.instId
+        )?.ctval || 1;
+      const amount = Number(position.availPos) * Number(rate);
       return {
+        id: position.posId,
         type: uppercaseFirstLetter(position.posSide),
         symbol: formatSymbolOkex(position.instId),
         entryPrice: Number(position.avgPx),

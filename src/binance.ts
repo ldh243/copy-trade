@@ -94,5 +94,6 @@ const addTypeToPosition = (positions: IPositionDetail[]): IPositionDetail[] => {
   return positions.map((position: IPositionDetail) => ({
     ...position,
     type: position.amount > 0 ? POSITION_TYPE.LONG : POSITION_TYPE.SHORT,
+    id: "none",
   }));
 };

@@ -6,11 +6,12 @@ export interface IPosition {
 export interface IProfile {
   username: string;
   channelId: string;
+  type: number;
   uid?: string;
-  type?: number;
 }
 
 export interface IPositionDetail {
+  id: string;
   type: string;
   symbol: string;
   entryPrice: number;
@@ -18,6 +19,12 @@ export interface IPositionDetail {
   pnl: number;
   amount: number;
   leverage: number;
+}
+
+export interface IPositionDetailHistory {
+  posId: string;
+  pnl: string;
+  closeAvgPx: string;
 }
 
 export interface IPrice {
@@ -49,4 +56,10 @@ export interface IAccountPositionDetail {
   updateTime: number;
   bidNotional: string;
   askNotional: string;
+}
+
+export interface OkexInstrument {
+  ctval: string;
+  instId: string;
+  instType: string;
 }
