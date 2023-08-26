@@ -15,9 +15,10 @@ export const getOkexBalance = async (): Promise<number> => {
   return result;
 };
 
-export const getOkexAccountPosition = async (): Promise<IPositionDetail[]> => {
+export const getOkexAccountPosition = async (
+  instruments: OkexInstrument[]
+): Promise<IPositionDetail[]> => {
   const { data } = await okexRequest.get(OKEX_ENDPOINT.GET_POSITION);
-  const instruments = await getOkexInstrument("SWAP");
   return genericPosition(data, instruments);
 };
 
@@ -28,7 +29,7 @@ export const getOkexAccountPositionHistory = async (): Promise<
   return data;
 };
 
-const getOkexInstrument = async (
+export const getOkexInstrument = async (
   instType: string
 ): Promise<OkexInstrument[]> => {
   const { data } = await okexRequest.get("/api/v5/public/instruments", {
