@@ -44,6 +44,7 @@ const handleError = async (err: AxiosError) => {
 
 okexRequest.interceptors.request.use(
   async (config: any) => {
+    console.log(`${new Date()} - ${config.url}`);
     const timestamp = moment().toISOString();
     const method = config.method.toUpperCase();
     let message = timestamp + method + config.url;
