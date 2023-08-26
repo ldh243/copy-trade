@@ -3,6 +3,7 @@ import {
   IPositionDetail,
   IPositionDetailHistory,
   IProfile,
+  OkexInstrument,
 } from "./db/types";
 import { PROFILES } from "./db/profile";
 import {
@@ -16,13 +17,18 @@ import {
 } from "./utils/telegram";
 import { read, save } from "./utils/db";
 import { getOtherPosition } from "./binance";
-import { getOkexAccountPosition, getOkexAccountPositionHistory } from "./okex";
+import {
+  getOkexAccountPosition,
+  getOkexAccountPositionHistory,
+  getOkexInstrument,
+} from "./okex";
 import { PROFILE_TYPE } from "./constant/config";
 
 const comparePosition = async (
   profile: IProfile,
   positions: IPosition[],
-  newPositions: IPositionDetail[]
+  newPositions: IPositionDetail[],
+  instruments: OkexInstrument[]
 ) => {
   const currentPositions = positions.find(
     (position: IPosition) => position.username === profile.username
@@ -54,7 +60,7 @@ const comparePosition = async (
   if (currentPositions?.data) {
     let okexPositionHistory: IPositionDetailHistory[] = [];
     if (profile.type === PROFILE_TYPE.OKEX_API) {
-      okexPositionHistory = await getOkexAccountPositionHistory();
+      okexPositionHistory = await getOkexAccountPositionHistory(instruments);
     }
     for await (const currentPosition of currentPositions?.data) {
       const newPositionBySymbol = newPositions.findIndex(
@@ -96,12 +102,14 @@ const getPosition = async (profile: IProfile): Promise<IPositionDetail[]> => {
 const main = async () => {
   const positions = await read();
 
+  const instruments = await getOkexInstrument("SWAP");
+
   const data: IPosition[] = [];
 
   for (const profile of PROFILES) {
     const newPositions: any[] = await getPosition(profile);
     data.push({ username: profile.username, data: newPositions });
-    comparePosition(profile, positions, newPositions);
+    comparePosition(profile, positions, newPositions, instruments);
   }
 
   save(data);
