@@ -59,7 +59,7 @@ export interface IAccountPositionDetail {
 }
 
 export interface OkexInstrument {
-  ctval: string;
+  ctVal: string;
   instId: string;
   instType: string;
 }

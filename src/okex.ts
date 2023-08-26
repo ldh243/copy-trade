@@ -45,10 +45,12 @@ const genericPosition = async (
 ): Promise<IPositionDetail[]> => {
   const result: Promise<IPositionDetail>[] = positions.map(
     async (position: any) => {
-      const rate =
-        instruments.find(
-          (instrument: OkexInstrument) => position.instId === instrument.instId
-        )?.ctval || 1;
+      const instrument = instruments.find(
+        (instrument: OkexInstrument) => position.instId === instrument.instId
+      );
+
+      const rate = Number(instrument?.ctVal || 1);
+
       const amount = Number(position.availPos) * Number(rate);
       return {
         id: position.posId,
