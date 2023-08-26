@@ -125,17 +125,17 @@ const main = async () => {
 
 // alertPosition();
 
-testMessage("Chán thật");
+// testMessage("Chán thật");
 
 // Schedule main() to run every 15 seconds
-// setInterval(() => {
-//   main();
-// }, 15 * 1000);
+setInterval(() => {
+  main();
+}, 15 * 1000);
 
 // Schedule main() to run every 90 minutes
-// setInterval(() => {
-//   alertPosition();
-// }, 180 * 60 * 1000);
+setInterval(() => {
+  alertPosition();
+}, 180 * 60 * 1000);
 
 /**
  * *1. Test open new position by remove
