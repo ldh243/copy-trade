@@ -101,10 +101,14 @@ const getPosition = async (
   return result;
 };
 
+let instruments: OkexInstrument[] = [];
+
 const main = async () => {
   const positions = await read();
 
-  const instruments = await getOkexInstrument("SWAP");
+  if (instruments.length === 0) {
+    instruments = await getOkexInstrument("SWAP");
+  }
 
   const data: IPosition[] = [];
 
@@ -121,19 +125,17 @@ const main = async () => {
 
 // alertPosition();
 
-// testMessage(
-//   "La Duy thích số 14, mà nghe nói nam trồi nữ sụt, nay đánh 15 vậy!"
-// );
+testMessage("Chán thật");
 
 // Schedule main() to run every 15 seconds
-setInterval(() => {
-  main();
-}, 15 * 1000);
+// setInterval(() => {
+//   main();
+// }, 15 * 1000);
 
 // Schedule main() to run every 90 minutes
-setInterval(() => {
-  alertPosition();
-}, 180 * 60 * 1000);
+// setInterval(() => {
+//   alertPosition();
+// }, 180 * 60 * 1000);
 
 /**
  * *1. Test open new position by remove
