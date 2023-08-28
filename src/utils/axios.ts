@@ -34,7 +34,7 @@ const handleSuccess = (res: AxiosResponse) => {
   //   return Promise.reject(res.data);
   // }
 
-  if (!res?.data?.data) {
+  if (!res?.data) {
     console.log(res.data);
   }
 
