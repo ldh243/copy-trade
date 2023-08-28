@@ -32,12 +32,11 @@ export const openPositionMsg = (
   profile: IProfile,
   newPosition: IPositionDetail
 ) => {
-  const icon = newPosition.amount > 0 ? "🟢" : "🔴";
   const { tether } = getCoinName(newPosition.symbol);
 
   let message = `
 _${profile.username}_ vừa mở lệnh kìa:
-${icon} *${newPosition.type}* #${newPosition.symbol} x ${newPosition.leverage}
+*${newPosition.type}* #${newPosition.symbol} x ${newPosition.leverage}
 Entry: \`${formatNumber(newPosition.entryPrice)}\`
 Volume: \`${formatNumber(
     newPosition.amount * newPosition.entryPrice
@@ -50,7 +49,7 @@ export const dcaPositionMsg = (
   profile: IProfile,
   newPosition: IPositionDetail
 ) => {
-  const icon = newPosition.amount > 0 ? "🟢" : "🔴";
+  const icon = newPosition.pnl > 0 ? "🟢" : "🔴";
   const { tether } = getCoinName(newPosition.symbol);
 
   let message = `
@@ -72,8 +71,8 @@ export const closePositionMsg = async (
   let message = "";
   const closePrice = await getMarkPrice(closePosition.symbol);
   const entryPrice = closePosition.entryPrice;
-  const icon = closePosition.amount > 0 ? "🟢" : "🔴";
   const profit = (closePrice - entryPrice) * closePosition.amount;
+  const icon = profit > 0 ? "🟢" : "🔴";
   const percentage =
     (profit / (Math.abs(closePosition.amount) * closePrice)) *
     closePosition.leverage;
@@ -143,10 +142,9 @@ export const alertPositionByProfile = async (
     let message = `
 _${profile.username}_ có các vị thế hiện tại là:`;
     for await (const position of currentPositions.data) {
-      const cmd = position.amount > 0 ? "Long" : "Short";
-      const icon = position.amount > 0 ? "🟢" : "🔴";
       const currentPrice = await getMarkPrice(position.symbol);
       const profit = (currentPrice - position.entryPrice) * position.amount;
+      const icon = profit > 0 ? "🟢" : "🔴";
       const percentage =
         (profit / (Math.abs(position.amount) * currentPrice)) *
         position.leverage *
@@ -168,7 +166,7 @@ Profit: \`${formatNumber(profit, 2)}\` ${tether} (${formatNumber(
 };
 
 export const testMessage = (message: string) => {
-  bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID_LADUY, message, {
+  bot.telegram.sendMessage("-1001726367480", message, {
     parse_mode: "Markdown",
   });
 };
@@ -184,8 +182,8 @@ export const closePositionOkexMsg = async (
   let message = "";
   const closePrice = Number(positionHistory?.closeAvgPx || 0);
   const entryPrice = closePosition.entryPrice;
-  const icon = closePosition.amount > 0 ? "🟢" : "🔴";
   const profit = Number(positionHistory?.pnl || 0);
+  const icon = profit > 0 ? "🟢" : "🔴";
   const percentage =
     (profit / (Math.abs(closePosition.amount) * closePrice)) *
     closePosition.leverage;

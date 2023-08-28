@@ -123,7 +123,7 @@ const main = async () => {
 
 // main();
 
-// alertPosition();
+alertPosition();
 
 // testMessage("Chán thật");
 
